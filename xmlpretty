@@ -1,0 +1,64 @@
+#!/usr/bin/python3
+#+
+# prettyprint XML read from stdin to stdout.
+#
+# Written by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+#-
+
+import sys
+from xml.etree import \
+    ElementTree as XMLElementTree
+from xml.sax.saxutils import \
+    escape, \
+    quoteattr
+
+out = sys.stdout
+
+sol = True
+def write_line(indent, line, newline = True) :
+    global sol
+    if sol :
+        out.write(" " * indent * 4)
+    #end if
+    out.write(line)
+    if newline :
+        out.write("\n")
+    #end if
+    sol = newline
+#end write_line
+
+def end_line() :
+    global sol
+    if not sol :
+        out.write("\n")
+        sol = True
+    #end if
+#end end_line
+
+def format(tag, indent) :
+    write_line(indent, "<{}".format(tag.tag), newline = False)
+    got_attr = False
+    for attr in sorted(tag.keys()) :
+        if not got_attr :
+            end_line()
+            got_attr = True
+        #end if
+        write_line(indent + 1, "{attr}={value}".format(attr = attr, value = quoteattr(tag.get(attr))))
+    #end for
+    if len(tag) != 0 :
+        write_line(indent, ">")
+        for child in tag :
+            format(child, indent + 1)
+        #end for
+        write_line(indent, "</{}>".format(tag.tag))
+    elif tag.text != None :
+        write_line(indent, ">")
+        write_line(indent + 1, escape(tag.text))
+        write_line(indent, "</{}>".format(tag.tag))
+    else :
+        write_line(indent, "/>")
+    #end if
+#end format
+
+doc = XMLElementTree.fromstring(sys.stdin.read())
+format(doc, 0)

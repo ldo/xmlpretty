@@ -53,7 +53,7 @@ def format(tag, indent) :
         write_line(indent, "</{}>".format(tag.tag))
     elif tag.text != None :
         write_line(indent, ">")
-        write_line(indent + 1, escape(tag.text))
+        write_line(indent + 1, escape(tag.text.strip()))
         write_line(indent, "</{}>".format(tag.tag))
     else :
         write_line(indent, "/>")
